@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const server_1 = require("@apollo/server");
 const express4_1 = require("@apollo/server/express4");
+const db_1 = require("./lib/db");
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
         const app = (0, express_1.default)();
@@ -25,21 +26,39 @@ function init() {
         hello: String
         say(name:String): String
      }
+
+     type Mutation{
+      createUser(email:String!,password:String,firstName:String!,lastName:String!):Boolean
+     }
     `, // Schema!
             resolvers: {
                 Query: {
-                    hello: () => "Hello",
-                    say: (_, { name }) => name + "5"
+                    hello: () => 'Hello',
+                    say: (_, { name }) => name + '5'
+                },
+                Mutation: {
+                    createUser: (_1, _a) => __awaiter(this, [_1, _a], void 0, function* (_, { firstName, lastName, email, password }) {
+                        yield db_1.prisma.user.create({
+                            data: {
+                                email,
+                                password,
+                                firstName,
+                                lastName,
+                                salt: 'uueu'
+                            }
+                        });
+                        return true;
+                    })
                 }
             }
         });
         yield gqlServer.start();
-        app.get("/", (req, res) => __awaiter(this, void 0, void 0, function* () {
-            res.send("Hello world!");
+        app.get('/', (req, res) => __awaiter(this, void 0, void 0, function* () {
+            res.send('Hello world!');
         }));
-        app.use("/graphql", (0, express4_1.expressMiddleware)(gqlServer));
+        app.use('/graphql', (0, express4_1.expressMiddleware)(gqlServer));
         app.listen(8000, () => {
-            console.log("Server is Running...");
+            console.log('Server is Running...');
         });
     });
 }
